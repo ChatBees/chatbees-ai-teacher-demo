@@ -57,7 +57,7 @@ async function transcribeAudio(
 
   console.log('Transcription URL:', url);
   console.log('Transcription Headers:', headers);
-  console.log('FormData keys:', [...formData.keys()]);
+  console.log('FormData keys:', Array.from(formData.keys())); // Fix for iteration error
 
   try {
     const response = await fetch(url, {
@@ -80,6 +80,59 @@ async function transcribeAudio(
     }
   } catch (error) {
     console.error('Error transcribing audio:', error);
+    throw error;
+  }
+}
+
+async function uploadTranscription(
+  aid: string,
+  apiKey: string,
+  collectionName: string,
+  docName: string,
+  transcript: string
+): Promise<void> {
+  const urlSuffix = '/docs/add';
+  const formData = new FormData();
+  
+  // Create a Blob from the transcript
+  const blob = new Blob([transcript], { type: 'text/plain' });
+  
+  // Append the file to the FormData
+  formData.append('file', blob, `${docName}.txt`);
+
+  // Add the request data
+  const requestData = JSON.stringify({
+    namespace_name: 'public',
+    collection_name: collectionName,
+    doc_name: docName
+  });
+  formData.append('request', requestData);
+
+  const url = getServiceUrl(aid) + urlSuffix;
+  const headers = getHeaders(aid, apiKey, true); // Set upload to true
+
+  console.log('Upload Transcription URL:', url);
+  console.log('Upload Transcription Headers:', headers);
+  console.log('FormData keys:', Array.from(formData.keys()));
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Upload Transcription API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorBody: errorText
+      });
+      throw new Error(`Upload Transcription failed: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error uploading transcription:', error);
     throw error;
   }
 }
@@ -152,13 +205,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           );
           console.log('Transcription complete', transcript);
 
+          // Upload the transcription
+          console.log('Uploading transcription');
+          const docName = path.parse(safeFileName).name; // Use the video filename (without extension) as the doc name
+          await uploadTranscription(
+            getAccountID() as string,
+            getApiKey() as string,
+            'videos', // or whatever collection name you're using
+            docName,
+            transcript
+          );
+          console.log('Transcription uploaded successfully');
+
           // Return the paths and transcript
           const videoUrl = `/uploads/${safeFileName}`;
           const audioUrl = `/uploads/${audioFileName}`;
-          return res.status(200).json({ videoUrl, audioUrl, transcript });
+          return res.status(200).json({ videoUrl, audioUrl, transcript, docName });
         } catch (transcriptionError) {
-          console.error('Transcription error details:', transcriptionError as Error);
-          return res.status(500).json({ error: 'Transcription failed', details: (transcriptionError as Error).message });
+          console.error('Transcription or upload error details:', transcriptionError as Error);
+          return res.status(500).json({ error: 'Transcription or upload failed', details: (transcriptionError as Error).message });
         }
       } else {
         // No audio stream found
