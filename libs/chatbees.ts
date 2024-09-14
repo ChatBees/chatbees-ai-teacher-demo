@@ -6,7 +6,7 @@ export function getAccountID() {
 }
 
 //const baseurl = '.us-west-2.aws.chatbees.ai'
-const baseurl =  process.env.NEXT_PUBLIC_CHATBEES_BASEURL ?? '.us-west-2.aws.chatbees.ai';
+const baseurl = process.env.NEXT_PUBLIC_CHATBEES_BASEURL ?? '.us-west-2.aws.chatbees.ai';
 
 export function getServiceUrl(aid: string): string {
   if (baseurl == 'localhost') {
@@ -91,7 +91,7 @@ export async function TranscribeRemoteAudio(
 
   // data: { "transcript": string }
   const data = await fetchUrl(aid, apiKey, urlSuffix, jsonBody);
-  return { data['transcript'] };
+  return data['transcript'];
 }
 
 export type FAQ = {
@@ -118,7 +118,7 @@ export async function GetOutlineFAQ(
   });
 
   const data = await fetchUrl(aid, apiKey, urlSuffix, jsonBody);
-  return { outlines: data['outlines']; faqs: data['faqs'] };
+  return { outlines: data['outlines'], faqs: data['faqs'] };
 }
 
 export async function SummarizeDoc(
@@ -135,6 +135,6 @@ export async function SummarizeDoc(
   });
 
   const data = await fetchUrl(aid, apiKey, urlSuffix, jsonBody);
-  return { data['summary'] };
+  return data['summary'];
 }
 

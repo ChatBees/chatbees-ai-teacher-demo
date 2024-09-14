@@ -3,7 +3,8 @@ import chatbees as cb
 # Create an API key on UI after signup/signin.
 # Configure cb to use the newly minted API key.
 # export ENV_TEST_BASE_URL=http://localhost:8080
-cb.init(api_key=my_api_key, account_id=your_account_id)
+cb.init(api_key="MDItMDAwMDAwMDAtNDFlZTY3MjYtMzcwZS1kNTM2LTRiNDAtYmNhYjcyYjVmNTBj",
+        account_id="IYT7YW3F")
 
 # Create a new collection
 vid_col = cb.Collection(name="chatbees")

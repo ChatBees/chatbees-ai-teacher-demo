@@ -1,10 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAccountID, GetOutlineFAQ, OutlineFAQResponse, API_KEY } from "../libs/chatbees";
+
+// Fake data for demonstration purposes
+const fakeSummary = "This is a fake summary of the video content. It provides an overview of the main topics discussed in the video, including key points and important takeaways.";
+const fakeFAQs = [
+  { question: "What is the main topic of this video?", answer: "The main topic of this video is an introduction to artificial intelligence and its applications in everyday life." },
+  { question: "How long is the video?", answer: "The video is approximately 15 minutes long." },
+  { question: "Who is the presenter?", answer: "The presenter is Dr. Jane Smith, a renowned expert in the field of AI." },
+];
 
 export default function Home() {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [accountId, setAccountId] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string>("");
+  const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
+  const [activeTab, setActiveTab] = useState<'chat' | 'faq'>('chat');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -12,68 +27,206 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    const fetchAccountId = async () => {
+      try {
+        const id = await getAccountID();
+        if (id) {
+          setAccountId(id);
+        }
+      } catch (error) {
+        console.error("Error fetching account ID:", error);
+        setAccountId("demo-account-id");
+      }
+    };
+
+    fetchAccountId();
+  }, []);
+
+  useEffect(() => {
+    const fetchOutlineAndFAQ = async () => {
+      if (videoSrc && accountId && API_KEY) {
+        const videoId = videoSrc.split('/').pop() || '';
+        try {
+          const response: OutlineFAQResponse = await GetOutlineFAQ(accountId, API_KEY, 'videos', videoId);
+          setSummary(response.outlines.join('\n'));
+          setFaqs(response.faqs);
+        } catch (error) {
+          console.error("Error fetching outline and FAQ:", error);
+          // Inject fake data for demo purposes
+          setSummary(fakeSummary);
+          setFaqs(fakeFAQs);
+        }
+      }
+    };
+
+    fetchOutlineAndFAQ();
+  }, [videoSrc, accountId]);
+
   const handleUpload = async () => {
     if (!file) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
 
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    if (res.ok) {
-      alert("File uploaded successfully");
-      setVideoSrc(`/uploads/${file.name}`);
-    } else {
-      alert("File upload failed");
+      if (res.ok) {
+        setVideoSrc(`/uploads/${file.name}`);
+        setUploadProgress(100);
+        setTimeout(() => {
+          setIsUploading(false);
+          setUploadProgress(0);
+        }, 1000); // Reset upload state after 1 second
+      } else {
+        throw new Error("Upload failed");
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      setIsUploading(false);
     }
   };
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full">
-        <div className="flex flex-col sm:flex-row gap-8 w-full">
-          <div className="flex-1">
-            <input
-              type="file"
-              accept="video/mp4"
-              onChange={handleFileChange}
-              className="mb-4"
-            />
+    <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 p-4 shadow-md">
+        <h1 className="text-2xl font-bold">ChatBees Video</h1>
+      </header>
+      
+      <main className="flex-grow flex flex-col lg:flex-row p-4 gap-4">
+        <div className="lg:w-2/3">
+          {videoSrc ? (
+            <video className="w-full h-auto" controls src={videoSrc}>
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <div className="bg-gray-200 dark:bg-gray-700 aspect-video flex items-center justify-center">
+              <p>No video uploaded yet</p>
+            </div>
+          )}
+          
+          <div className="mt-4">
+            <h2 className="text-xl font-semibold mb-2">Video Title</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Video description goes here...</p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4">
+            <h3 className="text-lg font-semibold mb-2">Summary</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+              {summary || "No summary available for this video."}
+            </p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <h3 className="text-xl font-semibold mb-4">Upload Video</h3>
+            <div className="mb-4">
+              <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Choose a video file
+              </label>
+              <input
+                id="file-upload"
+                type="file"
+                accept="video/mp4"
+                onChange={handleFileChange}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100
+                  dark:file:bg-gray-700 dark:file:text-gray-200
+                  dark:hover:file:bg-gray-600"
+              />
+            </div>
             <button
               onClick={handleUpload}
-              className="mb-4 p-2 bg-blue-500 text-white rounded-lg"
+              disabled={!file || isUploading}
+              className={`w-full py-2 px-4 rounded-md text-white font-medium
+                ${file && !isUploading
+                  ? 'bg-blue-500 hover:bg-blue-600'
+                  : 'bg-gray-400 cursor-not-allowed'
+                } transition duration-300 ease-in-out`}
             >
-              Upload Video
+              {isUploading ? 'Uploading...' : 'Upload Video'}
             </button>
-            {videoSrc && (
-              <video className="w-full h-auto" controls src={videoSrc}>
-                Your browser does not support the video tag.
-              </video>
+            {isUploading && (
+              <div className="mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
+                  {uploadProgress}% Uploaded
+                </p>
+              </div>
             )}
           </div>
-          <div className="flex-1">
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg h-full">
-              <h2 className="text-lg font-semibold mb-4">ChatBees</h2>
-              <div className="flex flex-col gap-2 h-96 overflow-y-auto">
-                <div className="bg-white dark:bg-gray-700 p-2 rounded-lg">
-                  <p className="text-sm">Hello! How can I help you today?</p>
-                </div>
-                {/* Add more chat messages here */}
-              </div>
-              <div className="mt-4">
-                <input
-                  type="text"
-                  className="w-full p-2 rounded-lg border border-gray-300 text-black dark:border-gray-700"
-                  placeholder="Type a message..."
-                />
-              </div>
+        </div>
+        
+        <div className="lg:w-1/3 mt-4 lg:mt-0">
+          <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+            <div className="flex border-b border-gray-200 dark:border-gray-700">
+              <button
+                className={`flex-1 py-2 px-4 ${activeTab === 'chat' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                onClick={() => setActiveTab('chat')}
+              >
+                ChatBees
+              </button>
+              <button
+                className={`flex-1 py-2 px-4 ${activeTab === 'faq' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                onClick={() => setActiveTab('faq')}
+              >
+                FAQ
+              </button>
             </div>
+            
+            {activeTab === 'chat' && (
+              <div className="p-4">
+                <div className="flex flex-col gap-2 h-96 overflow-y-auto mb-4">
+                  <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                    <p className="text-sm">Hello! How can I help you today?</p>
+                  </div>
+                  {/* Add more chat messages here */}
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-600"
+                    placeholder="Type a message..."
+                  />
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'faq' && (
+              <div className="p-4">
+                <h3 className="text-lg font-semibold mb-4">Frequently Asked Questions</h3>
+                <ul className="space-y-4">
+                  {faqs.map((faq, index) => (
+                    <li key={index}>
+                      <h4 className="font-medium">{faq.question}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{faq.answer}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </main>
+      
+      <footer className="bg-white dark:bg-gray-800 p-4 text-center">
+        <p>Account ID: {accountId}</p>
+      </footer>
     </div>
   );
 }
