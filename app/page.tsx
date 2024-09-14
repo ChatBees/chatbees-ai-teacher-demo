@@ -23,6 +23,9 @@ export default function Home() {
   const [docName, setDocName] = useState<string | null>(null);
   const [description, setDescription] = useState<string>("");
   const [videoTitle, setVideoTitle] = useState<string>(""); // New state for video title
+  const [isLoadingOutline, setIsLoadingOutline] = useState(false);
+  const [isLoadingFAQ, setIsLoadingFAQ] = useState(false);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -52,21 +55,31 @@ export default function Home() {
   useEffect(() => {
     const fetchOutlineAndFAQ = async () => {
       if (videoSrc && accountId && API_KEY && docName) {
+        setIsLoadingOutline(true);
+        setIsLoadingFAQ(true);
+        setIsLoadingSummary(true);
+
         try {
           const docNameWithExt = docName.endsWith('.txt') ? docName : `${docName}.txt`;
           const response: OutlineFAQResponse = await GetOutlineFAQ(accountId, API_KEY, COLLECTION_NAME as string, docNameWithExt);
           setSummary(response.outlines.join('\n'));
           setFaqs(response.faqs);
+          setIsLoadingOutline(false);
+          setIsLoadingFAQ(false);
 
           // Fetch the summary for video description
           const summaryResponse = await SummarizeDoc(accountId, API_KEY, COLLECTION_NAME as string, docNameWithExt);
           setDescription(summaryResponse);
+          setIsLoadingSummary(false);
         } catch (error) {
           console.error("Error fetching outline, FAQ, or summary:", error);
           // Inject fake data for demo purposes
           setSummary(fakeSummary);
           setFaqs(fakeFAQs);
           setDescription("Failed to load video description.");
+          setIsLoadingOutline(false);
+          setIsLoadingFAQ(false);
+          setIsLoadingSummary(false);
         }
       }
     };
@@ -133,16 +146,24 @@ export default function Home() {
 
           <div className="mt-4">
             <h2 className="text-2xl font-bold mb-4">{videoTitle || "Video Title"}</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              {description || "No description available for this video."}
-            </p>
+            {isLoadingSummary ? (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Loading description...</p>
+            ) : (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                {description || "No description available for this video."}
+              </p>
+            )}
           </div>
 
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4">
             <h3 className="text-lg font-semibold mb-2">Outline</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
-              {summary || "No summary available for this video."}
-            </p>
+            {isLoadingOutline ? (
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading outline...</p>
+            ) : (
+              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                {summary || "No summary available for this video."}
+              </p>
+            )}
           </div>
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
@@ -231,14 +252,18 @@ export default function Home() {
             {activeTab === 'faq' && (
               <div className="p-4">
                 <h3 className="text-lg font-semibold mb-4">Frequently Asked Questions</h3>
-                <ul className="space-y-4">
-                  {faqs.map((faq, index) => (
-                    <li key={index}>
-                      <h4 className="font-medium">{faq.question}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{faq.answer}</p>
-                    </li>
-                  ))}
-                </ul>
+                {isLoadingFAQ ? (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Loading FAQs...</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {faqs.map((faq, index) => (
+                      <li key={index}>
+                        <h4 className="font-medium">{faq.question}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{faq.answer}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
           </div>
