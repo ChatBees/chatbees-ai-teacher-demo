@@ -11,6 +11,10 @@ const fakeFAQs = [
   { question: "Who is the presenter?", answer: "The presenter is Dr. Jane Smith, a renowned expert in the field of AI." },
 ];
 
+const Spinner = () => (
+  <div className="spinner border-t-2 border-blue-500 border-solid rounded-full w-4 h-4 animate-spin"></div>
+);
+
 export default function Home() {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -147,7 +151,10 @@ export default function Home() {
           <div className="mt-4">
             <h2 className="text-2xl font-bold mb-4">{videoTitle || "Video Title"}</h2>
             {isLoadingSummary ? (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Loading description...</p>
+              <div className="flex items-center space-x-2">
+                <Spinner />
+                <p className="text-sm text-gray-600 dark:text-gray-400">Loading description...</p>
+              </div>
             ) : (
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 {description || "No description available for this video."}
@@ -158,7 +165,10 @@ export default function Home() {
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4">
             <h3 className="text-lg font-semibold mb-2">Outline</h3>
             {isLoadingOutline ? (
-              <p className="text-sm text-gray-600 dark:text-gray-400">Loading outline...</p>
+              <div className="flex items-center space-x-2">
+                <Spinner />
+                <p className="text-sm text-gray-600 dark:text-gray-400">Loading outline...</p>
+              </div>
             ) : (
               <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
                 {summary || "No summary available for this video."}
@@ -253,7 +263,10 @@ export default function Home() {
               <div className="p-4">
                 <h3 className="text-lg font-semibold mb-4">Frequently Asked Questions</h3>
                 {isLoadingFAQ ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Loading FAQs...</p>
+                  <div className="flex items-center space-x-2">
+                    <Spinner />
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Loading FAQs...</p>
+                  </div>
                 ) : (
                   <ul className="space-y-4">
                     {faqs.map((faq, index) => (
