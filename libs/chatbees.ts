@@ -2,6 +2,7 @@ import * as path from 'path';
 
 const ACCOUNT_ID = process.env.NEXT_PUBLIC_ACCOUNT_ID;
 export const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
+export const COLLECTION_NAME = process.env.NEXT_PUBLIC_COLLECTION_NAME;
 
 export function getAccountID() {
   return ACCOUNT_ID;

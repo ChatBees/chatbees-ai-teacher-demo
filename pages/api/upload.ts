@@ -5,7 +5,7 @@ import path from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { File } from 'formidable';
-import { getAccountID, getApiKey, getServiceUrl, getHeaders } from '../../libs/chatbees';
+import { getAccountID, getApiKey, getServiceUrl, getHeaders, COLLECTION_NAME } from '../../libs/chatbees';
 
 const execFileAsync = promisify(execFile);
 
@@ -199,7 +199,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const transcript = await transcribeAudio(
             getAccountID() as string,
             getApiKey() as string,
-            'videos', // or whatever collection name you're using
+            COLLECTION_NAME as string,
             audioPath, // Pass the full path to the audio file
             'ja' // or whatever language code is appropriate
           );
@@ -211,7 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           await uploadTranscription(
             getAccountID() as string,
             getApiKey() as string,
-            'videos', // or whatever collection name you're using
+            COLLECTION_NAME as string,
             docName,
             transcript
           );
@@ -242,8 +242,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       console.error('Error processing file:', error);
       return res.status(500).json({ 
-        error: 'Error processing file', 
-        details: (error as Error).message 
+        error: 'Error processing file',
+        details: (error as Error).message
       });
     }
   });

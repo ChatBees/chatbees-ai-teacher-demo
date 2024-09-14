@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAccountID, GetOutlineFAQ, OutlineFAQResponse, API_KEY, SummarizeDoc } from "../libs/chatbees";
+import { getAccountID, GetOutlineFAQ, OutlineFAQResponse, API_KEY, SummarizeDoc, COLLECTION_NAME } from "../libs/chatbees";
 
 // Fake data for demonstration purposes
 const fakeSummary = "This is a fake summary of the video content. It provides an overview of the main topics discussed in the video, including key points and important takeaways.";
@@ -54,12 +54,12 @@ export default function Home() {
       if (videoSrc && accountId && API_KEY && docName) {
         try {
           const docNameWithExt = docName.endsWith('.txt') ? docName : `${docName}.txt`;
-          const response: OutlineFAQResponse = await GetOutlineFAQ(accountId, API_KEY, 'videos', docNameWithExt);
+          const response: OutlineFAQResponse = await GetOutlineFAQ(accountId, API_KEY, COLLECTION_NAME as string, docNameWithExt);
           setSummary(response.outlines.join('\n'));
           setFaqs(response.faqs);
 
           // Fetch the summary for video description
-          const summaryResponse = await SummarizeDoc(accountId, API_KEY, 'videos', docNameWithExt);
+          const summaryResponse = await SummarizeDoc(accountId, API_KEY, COLLECTION_NAME as string, docNameWithExt);
           setDescription(summaryResponse);
         } catch (error) {
           console.error("Error fetching outline, FAQ, or summary:", error);
@@ -116,7 +116,7 @@ export default function Home() {
       <header className="bg-white dark:bg-gray-800 p-4 shadow-md">
         <h1 className="text-2xl font-bold">ChatBees Video</h1>
       </header>
-      
+
       <main className="flex-grow flex flex-col lg:flex-row p-4 gap-4">
         <div className="lg:w-2/3">
           {videoSrc ? (
@@ -130,21 +130,21 @@ export default function Home() {
               <p>No video uploaded yet</p>
             </div>
           )}
-          
+
           <div className="mt-4">
             <h2 className="text-2xl font-bold mb-4">{videoTitle || "Video Title"}</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               {description || "No description available for this video."}
             </p>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4">
             <h3 className="text-lg font-semibold mb-2">Outline</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
               {summary || "No summary available for this video."}
             </p>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <h3 className="text-xl font-semibold mb-4">Upload Video</h3>
             <div className="mb-4">
@@ -192,7 +192,7 @@ export default function Home() {
             )}
           </div>
         </div>
-        
+
         <div className="lg:w-1/3 mt-4 lg:mt-0">
           <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
             <div className="flex border-b border-gray-200 dark:border-gray-700">
@@ -209,7 +209,7 @@ export default function Home() {
                 FAQ
               </button>
             </div>
-            
+
             {activeTab === 'chat' && (
               <div className="p-4">
                 <div className="flex flex-col gap-2 h-96 overflow-y-auto mb-4">
@@ -227,7 +227,7 @@ export default function Home() {
                 </div>
               </div>
             )}
-            
+
             {activeTab === 'faq' && (
               <div className="p-4">
                 <h3 className="text-lg font-semibold mb-4">Frequently Asked Questions</h3>
@@ -244,7 +244,7 @@ export default function Home() {
           </div>
         </div>
       </main>
-      
+
       <footer className="bg-white dark:bg-gray-800 p-4 text-center">
         <p>Account ID: {accountId}</p>
       </footer>
