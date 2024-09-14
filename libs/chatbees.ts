@@ -75,6 +75,7 @@ async function fetchUrl<T = any>(
   return await doFetchUrl<T>(aid, apiKey, url, body)
 }
 
+// for upload local audio file, see admin ui, src/components/CollectionDetail/FileDropZone.tsx
 export async function TranscribeRemoteAudio(
   aid: string,
   apiKey: string,
