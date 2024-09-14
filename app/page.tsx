@@ -20,6 +20,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'chat' | 'faq'>('chat');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [docName, setDocName] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -45,10 +46,11 @@ export default function Home() {
 
   useEffect(() => {
     const fetchOutlineAndFAQ = async () => {
-      if (videoSrc && accountId && API_KEY) {
-        const videoId = videoSrc.split('/').pop() || '';
+      if (videoSrc && accountId && API_KEY && docName) {
         try {
-          const response: OutlineFAQResponse = await GetOutlineFAQ(accountId, API_KEY, 'videos', videoId);
+          // Ensure docName has .txt extension
+          const docNameWithExt = docName.endsWith('.txt') ? docName : `${docName}.txt`;
+          const response: OutlineFAQResponse = await GetOutlineFAQ(accountId, API_KEY, 'videos', docNameWithExt);
           setSummary(response.outlines.join('\n'));
           setFaqs(response.faqs);
         } catch (error) {
@@ -61,7 +63,7 @@ export default function Home() {
     };
 
     fetchOutlineAndFAQ();
-  }, [videoSrc, accountId]);
+  }, [videoSrc, accountId, docName]);
 
   const handleUpload = async () => {
     if (!file) return;
@@ -80,7 +82,8 @@ export default function Home() {
 
       if (res.ok) {
         const data = await res.json();
-        setVideoSrc(data.videoUrl); // Use the videoUrl from the response
+        setVideoSrc(data.videoUrl);
+        setDocName(data.docName); // Set the docName from the response
         setUploadProgress(100);
         setTimeout(() => {
           setIsUploading(false);
@@ -119,7 +122,7 @@ export default function Home() {
           </div>
           
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4">
-            <h3 className="text-lg font-semibold mb-2">Summary</h3>
+            <h3 className="text-lg font-semibold mb-2">Outline</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
               {summary || "No summary available for this video."}
             </p>

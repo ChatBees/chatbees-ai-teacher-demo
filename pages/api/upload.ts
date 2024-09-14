@@ -207,7 +207,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           // Upload the transcription
           console.log('Uploading transcription');
-          const docName = path.parse(safeFileName).name; // Use the video filename (without extension) as the doc name
+          const docName = path.parse(safeFileName).name;
           await uploadTranscription(
             getAccountID() as string,
             getApiKey() as string,
@@ -217,13 +217,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           );
           console.log('Transcription uploaded successfully');
 
-          // Return the paths and transcript
+          // Return the paths, transcript, and docName
           const videoUrl = `/uploads/${safeFileName}`;
           const audioUrl = `/uploads/${audioFileName}`;
-          return res.status(200).json({ videoUrl, audioUrl, transcript, docName });
-        } catch (transcriptionError) {
-          console.error('Transcription or upload error details:', transcriptionError as Error);
-          return res.status(500).json({ error: 'Transcription or upload failed', details: (transcriptionError as Error).message });
+          return res.status(200).json({ 
+            videoUrl, 
+            audioUrl, 
+            transcript, 
+            docName: `${docName}.txt`, // Include .txt extension in the response
+          });
+        } catch (error) {
+          console.error('Error in transcription or upload:', error as Error);
+          return res.status(500).json({ 
+            error: 'Error in processing', 
+            details: (error as Error).message 
+          });
         }
       } else {
         // No audio stream found

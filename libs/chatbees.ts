@@ -65,6 +65,7 @@ async function doFetchUrl<T = any>(aid: string, apiKey: string, url: string, bod
 
     // 401 errors bypass error check. We'll redirect users to login page
   } catch (error) {
+
     console.log('Caught error ', error);
     throw error;
   }
@@ -126,6 +127,8 @@ export async function GetOutlineFAQ(
     collection_name: collectionName,
     doc_name: docName,
   });
+
+  console.log(jsonBody);
 
   const data = await fetchUrl(aid, apiKey, urlSuffix, jsonBody);
   return { outlines: data['outlines'], faqs: data['faqs'] };
