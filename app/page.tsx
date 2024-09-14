@@ -79,7 +79,8 @@ export default function Home() {
       });
 
       if (res.ok) {
-        setVideoSrc(`/uploads/${file.name}`);
+        const data = await res.json();
+        setVideoSrc(data.videoUrl); // Use the videoUrl from the response
         setUploadProgress(100);
         setTimeout(() => {
           setIsUploading(false);
