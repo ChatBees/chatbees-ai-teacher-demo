@@ -22,10 +22,14 @@ export default function Home() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [docName, setDocName] = useState<string | null>(null);
   const [description, setDescription] = useState<string>("");
+  const [videoTitle, setVideoTitle] = useState<string>(""); // New state for video title
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setFile(file);
+      // Set the video title to the file name without extension
+      setVideoTitle(file.name.split('.').slice(0, -1).join('.'));
     }
   };
 
@@ -88,12 +92,16 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setVideoSrc(data.videoUrl);
-        setDocName(data.docName); // Set the docName from the response
+        setDocName(data.docName);
+        // Set the video title if it's not already set (in case it wasn't set during file selection)
+        if (!videoTitle) {
+          setVideoTitle(data.docName.split('.').slice(0, -1).join('.'));
+        }
         setUploadProgress(100);
         setTimeout(() => {
           setIsUploading(false);
           setUploadProgress(0);
-        }, 1000); // Reset upload state after 1 second
+        }, 1000);
       } else {
         throw new Error("Upload failed");
       }
@@ -112,9 +120,11 @@ export default function Home() {
       <main className="flex-grow flex flex-col lg:flex-row p-4 gap-4">
         <div className="lg:w-2/3">
           {videoSrc ? (
-            <video className="w-full h-auto" controls src={videoSrc}>
-              Your browser does not support the video tag.
-            </video>
+            <>
+              <video className="w-full h-auto" controls src={videoSrc}>
+                Your browser does not support the video tag.
+              </video>
+            </>
           ) : (
             <div className="bg-gray-200 dark:bg-gray-700 aspect-video flex items-center justify-center">
               <p>No video uploaded yet</p>
@@ -122,7 +132,7 @@ export default function Home() {
           )}
           
           <div className="mt-4">
-            <h2 className="text-xl font-semibold mb-2">Video Description</h2>
+            <h2 className="text-2xl font-bold mb-4">{videoTitle || "Video Title"}</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               {description || "No description available for this video."}
             </p>
