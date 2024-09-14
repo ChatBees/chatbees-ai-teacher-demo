@@ -5,6 +5,7 @@ import path from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { File } from 'formidable';
+import { getAccountID, getApiKey, getServiceUrl, getHeaders } from '../../libs/chatbees';
 
 const execFileAsync = promisify(execFile);
 
@@ -21,6 +22,66 @@ function generateUniqueFileName(fileName: string): string {
   const ext = path.extname(fileName);
   const name = path.basename(fileName, ext);
   return `${name}_${timestamp}_${randomString}${ext}`;
+}
+
+async function transcribeAudio(
+  aid: string,
+  apiKey: string,
+  collectionName: string,
+  audioFilePath: string,
+  lang: string
+): Promise<string> {
+  const urlSuffix = '/docs/transcribe_audio';
+  const formData = new FormData();
+  
+  // Read the file from the local file system
+  const fileBuffer = await fs.promises.readFile(audioFilePath);
+  const fileName = path.basename(audioFilePath);
+
+  // Create a Blob from the file buffer
+  const blob = new Blob([fileBuffer]);
+  
+  // Append the file to the FormData
+  formData.append('file', blob, fileName);
+
+  // Add the request data
+  const requestData = JSON.stringify({
+    namespace_name: 'public',
+    collection_name: collectionName,
+    lang: lang
+  });
+  formData.append('request', requestData);
+
+  const url = getServiceUrl(aid) + urlSuffix;
+  const headers = getHeaders(aid, apiKey, true); // Set upload to true
+
+  console.log('Transcription URL:', url);
+  console.log('Transcription Headers:', headers);
+  console.log('FormData keys:', [...formData.keys()]);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.transcript;
+    } else {
+      const errorText = await response.text();
+      console.error('Transcription API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorBody: errorText
+      });
+      throw new Error(`Transcription failed: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error transcribing audio:', error);
+    throw error;
+  }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -79,10 +140,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ]);
         console.log(`Audio extracted successfully`);
 
-        // Return the paths relative to the public directory
-        const videoUrl = `/uploads/${safeFileName}`;
-        const audioUrl = `/uploads/${audioFileName}`;
-        return res.status(200).json({ videoUrl, audioUrl });
+        // Transcribe the audio
+        console.log('Transcribing audio');
+        try {
+          const transcript = await transcribeAudio(
+            getAccountID() as string,
+            getApiKey() as string,
+            'videos', // or whatever collection name you're using
+            audioPath, // Pass the full path to the audio file
+            'ja' // or whatever language code is appropriate
+          );
+          console.log('Transcription complete', transcript);
+
+          // Return the paths and transcript
+          const videoUrl = `/uploads/${safeFileName}`;
+          const audioUrl = `/uploads/${audioFileName}`;
+          return res.status(200).json({ videoUrl, audioUrl, transcript });
+        } catch (transcriptionError) {
+          console.error('Transcription error details:', transcriptionError as Error);
+          return res.status(500).json({ error: 'Transcription failed', details: (transcriptionError as Error).message });
+        }
       } else {
         // No audio stream found
         console.log(`No audio stream found in the file`);
@@ -91,7 +168,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     } catch (error) {
       console.error('Error processing file:', error);
-      return res.status(500).json({ error: 'Error processing file' });
+      return res.status(500).json({ 
+        error: 'Error processing file', 
+        details: (error as Error).message 
+      });
     }
   });
 }

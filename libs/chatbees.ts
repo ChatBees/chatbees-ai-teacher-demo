@@ -1,8 +1,14 @@
+import * as path from 'path';
+
 const ACCOUNT_ID = process.env.NEXT_PUBLIC_ACCOUNT_ID;
 export const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
 export function getAccountID() {
   return ACCOUNT_ID;
+}
+
+export function getApiKey() {
+  return API_KEY;
 }
 
 //const baseurl = '.us-west-2.aws.chatbees.ai'
@@ -24,7 +30,11 @@ export function getHeaders(
     'Content-Type': 'application/json',
     'api-key': apiKey,
   };
-  if (baseurl == 'localhost' || window.location.origin.includes('localhost')) {
+
+  // Check if we're in a browser environment
+  const isBrowser = typeof window !== 'undefined';
+
+  if (baseurl == 'localhost' || (isBrowser && window.location.origin.includes('localhost'))) {
     headers['x-org-url'] = aid;
   }
 
