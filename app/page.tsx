@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAccountID, GetOutlineFAQ, OutlineFAQResponse, API_KEY } from "../libs/chatbees";
+import { getAccountID, GetOutlineFAQ, OutlineFAQResponse, API_KEY, SummarizeDoc } from "../libs/chatbees";
 
 // Fake data for demonstration purposes
 const fakeSummary = "This is a fake summary of the video content. It provides an overview of the main topics discussed in the video, including key points and important takeaways.";
@@ -21,6 +21,7 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [docName, setDocName] = useState<string | null>(null);
+  const [description, setDescription] = useState<string>("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -48,16 +49,20 @@ export default function Home() {
     const fetchOutlineAndFAQ = async () => {
       if (videoSrc && accountId && API_KEY && docName) {
         try {
-          // Ensure docName has .txt extension
           const docNameWithExt = docName.endsWith('.txt') ? docName : `${docName}.txt`;
           const response: OutlineFAQResponse = await GetOutlineFAQ(accountId, API_KEY, 'videos', docNameWithExt);
           setSummary(response.outlines.join('\n'));
           setFaqs(response.faqs);
+
+          // Fetch the summary for video description
+          const summaryResponse = await SummarizeDoc(accountId, API_KEY, 'videos', docNameWithExt);
+          setDescription(summaryResponse);
         } catch (error) {
-          console.error("Error fetching outline and FAQ:", error);
+          console.error("Error fetching outline, FAQ, or summary:", error);
           // Inject fake data for demo purposes
           setSummary(fakeSummary);
           setFaqs(fakeFAQs);
+          setDescription("Failed to load video description.");
         }
       }
     };
@@ -117,8 +122,10 @@ export default function Home() {
           )}
           
           <div className="mt-4">
-            <h2 className="text-xl font-semibold mb-2">Video Title</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Video description goes here...</p>
+            <h2 className="text-xl font-semibold mb-2">Video Description</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              {description || "No description available for this video."}
+            </p>
           </div>
           
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4">
