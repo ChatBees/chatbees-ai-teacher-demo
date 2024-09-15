@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import ChatArea, { Conversation } from "@/components/ChatArea";
+import ChatArea from "@/components/ChatArea";
 import UserInput from "@/components/UserInput";
+import { Conversation } from "@/components/ChatConversation";
 import { Ask } from "@/libs/chatbees";
 
 interface ChatWidgetProps {
