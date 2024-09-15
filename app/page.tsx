@@ -242,9 +242,10 @@ export default function Home() {
               </button>
             </div>
 
-            {activeTab === "chat" &&
+            <div className={activeTab !== "chat" ? "hidden" : ""}>
               <ChatWidget aid={accountId || ""} apiKey={API_KEY || ""} collectionName={COLLECTION_NAME || ""}
-                docName={docName || ""}/>}
+                docName={docName || ""}/>
+            </div>
 
             {activeTab === 'faq' && (
               <div className="p-4">
