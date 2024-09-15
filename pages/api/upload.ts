@@ -17,11 +17,12 @@ export const config = {
 };
 
 function generateUniqueFileName(fileName: string): string {
-  const timestamp = Date.now();
-  const randomString = Math.random().toString(36).substring(2, 8);
+  //const timestamp = Date.now();
+  //const randomString = Math.random().toString(36).substring(2, 8);
   const ext = path.extname(fileName);
   const name = path.basename(fileName, ext);
-  return `${name}_${timestamp}_${randomString}${ext}`;
+  return `${name}${ext}`;
+  //return `${name}_${timestamp}_${randomString}${ext}`;
 }
 
 async function transcribeAudio(
@@ -166,6 +167,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const newPath = path.join(uploadDir, safeFileName);
     const audioFileName = `${path.parse(safeFileName).name}.mp3`;
     const audioPath = path.join(uploadDir, audioFileName);
+    const transcribeFileName = `${path.parse(safeFileName).name}.txt`;
+    const transcribeFilePath = path.join(uploadDir, transcribeFileName);
 
     try {
       await fs.promises.rename(file.filepath, newPath);
@@ -188,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           '-i', newPath,
           '-q:a', '0',
           '-map', 'a',
-          '-y',  // Overwrite output file if it exists
+          '-n',  // '-n' not overwrite, '-y' overwrite output file if it exists
           audioPath
         ]);
         console.log(`Audio extracted successfully`);
@@ -196,14 +199,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Transcribe the audio
         console.log('Transcribing audio');
         try {
-          const transcript = await transcribeAudio(
-            getAccountID() as string,
-            getApiKey() as string,
-            COLLECTION_NAME as string,
-            audioPath, // Pass the full path to the audio file
-            'ja' // or whatever language code is appropriate
-          );
-          console.log('Transcription complete', transcript);
+          let transcript = '';
+          try {
+            // Check if the file exists
+            await fs.promises.access(transcribeFilePath);
+            console.log('Transcript File already exists.');
+
+            transcript = await fs.promises.readFile(transcribeFilePath);
+            console.log('Read transcript from file.');
+          } catch (err) {
+            transcript = await transcribeAudio(
+              getAccountID() as string,
+              getApiKey() as string,
+              COLLECTION_NAME as string,
+              audioPath, // Pass the full path to the audio file
+              'en' // 'ja' // or whatever language code is appropriate
+            );
+            console.log('Transcription complete', transcript);
+
+            await fs.promises.writeFile(transcribeFilePath, transcript, 'utf8');
+            console.log('Write transcript to file.');
+          }
 
           // Upload the transcription
           console.log('Uploading transcription');

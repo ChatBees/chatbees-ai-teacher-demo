@@ -70,7 +70,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversations }) => {
       className="flex-1 px-2.5 bg-white text-black overflow-y-auto flex flex-col border border-gray-300 border-t border-t-gray-200 h-[75vh]">
       <div
         className="self-start bg-gray-200 rounded-r-lg rounded-tl-lg p-1.5 m-1 border-2 border-transparent flex flex-col max-w-[85%]">
-        Hello! How can I help you today?
+        Any Question? Just Ask!
       </div>
       {conversations.map(conversationMapper)}
     </div>
