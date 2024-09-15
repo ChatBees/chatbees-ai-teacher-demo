@@ -29,7 +29,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ aid, apiKey, collectionName, do
 
     Ask(aid, apiKey!, collectionName!, docName!, userMsg, history_messages, conversationId).then((botMsg) => {
       setConversations((prevConversations) => {
-        const index = prevConversations.findIndex((conv) => conv.userMsg === userMsg);
+        const index = prevConversations.findIndex((conv) => conv === conversation);
         if (index !== -1) {
           const newConversations = [...prevConversations];
           newConversations.splice(index, 1, { userMsg, botMsg });
