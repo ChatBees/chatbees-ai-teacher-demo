@@ -1,5 +1,3 @@
-import * as path from 'path';
-
 const ACCOUNT_ID = process.env.NEXT_PUBLIC_ACCOUNT_ID;
 export const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 export const COLLECTION_NAME = process.env.NEXT_PUBLIC_COLLECTION_NAME;
@@ -84,7 +82,7 @@ async function fetchUrl<T = any>(
 
   const url: string = getServiceUrl(aid) + urlSuffix;
 
-  return await doFetchUrl<T>(aid, apiKey, url, body)
+  return await doFetchUrl<T>(aid, apiKey, url, body);
 }
 
 // for upload local audio file, see admin ui, src/components/CollectionDetail/FileDropZone.tsx
@@ -152,3 +150,66 @@ export async function SummarizeDoc(
   return data['summary'];
 }
 
+interface OriginalAnswerRef {
+  doc_name: string;
+  page_num: number;
+  sample_text: string;
+}
+
+export interface AnswerRef {
+  docName: string;
+  pageNum: number;
+  sampleText: string;
+}
+
+export interface BotAnswer {
+  answer: string;
+  refs: AnswerRef[];
+  conversation_id: string;
+  request_id: string;
+}
+
+export async function Ask(
+  aid: string,
+  apiKey: string,
+  collectionName: string,
+  docName: string,
+  question: string,
+  historyMessages: string[][],
+  conversation_id: string | null,
+): Promise<BotAnswer> {
+  const url_suffix = '/docs/ask';
+  const json_body =
+    historyMessages.length == 0
+      ? JSON.stringify({
+        doc_name: docName,
+        collection_name: collectionName,
+        namespace_name: 'public',
+        question: question,
+        conversation_id: conversation_id,
+      })
+      : JSON.stringify({
+        doc_name: docName,
+        collection_name: collectionName,
+        namespace_name: 'public',
+        question: question,
+        history_messages: historyMessages,
+        conversation_id: conversation_id,
+      });
+
+  const respData = await fetchUrl(aid, apiKey, url_suffix, json_body);
+
+  const answer = respData['answer'];
+  const refs: AnswerRef[] = (respData['refs'] as OriginalAnswerRef[]).map(({ doc_name, page_num, sample_text }) => ({
+    docName: doc_name,
+    pageNum: page_num,
+    sampleText: sample_text,
+  }));
+
+  return {
+    answer,
+    refs,
+    conversation_id: respData['conversation_id'],
+    request_id: respData['request_id'],
+  };
+}

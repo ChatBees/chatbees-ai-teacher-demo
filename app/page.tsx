@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAccountID, GetOutlineFAQ, OutlineFAQResponse, API_KEY, SummarizeDoc, COLLECTION_NAME } from "../libs/chatbees";
+import ChatWidget from "@/components/ChatWidget";
 
 // Fake data for demonstration purposes
 const fakeSummary = "This is a fake summary of the video content. It provides an overview of the main topics discussed in the video, including key points and important takeaways.";
@@ -241,23 +242,9 @@ export default function Home() {
               </button>
             </div>
 
-            {activeTab === 'chat' && (
-              <div className="p-4">
-                <div className="flex flex-col gap-2 h-96 overflow-y-auto mb-4">
-                  <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
-                    <p className="text-sm">Hello! How can I help you today?</p>
-                  </div>
-                  {/* Add more chat messages here */}
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-600"
-                    placeholder="Type a message..."
-                  />
-                </div>
-              </div>
-            )}
+            {activeTab === "chat" &&
+              <ChatWidget aid={accountId || ""} apiKey={API_KEY || ""} collectionName={COLLECTION_NAME || ""}
+                docName={docName || ""}/>}
 
             {activeTab === 'faq' && (
               <div className="p-4">
