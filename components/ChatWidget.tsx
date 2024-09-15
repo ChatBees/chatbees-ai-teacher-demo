@@ -54,7 +54,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ aid, apiKey, collectionName, do
       >
         {isHovered && conversations.length > 0 && (
           <button
-            className="absolute top-2 right-2 text-red-500 p-2 rounded"
+            className="absolute top-2 right-2 text-red-500 bg-white p-2 rounded"
             onClick={clearConversations}
             title="Clear Chat"
           >
