@@ -13,13 +13,21 @@ interface ChatWidgetProps {
 const ChatWidget: React.FC<ChatWidgetProps> = ({ aid, apiKey, collectionName, docName }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
+  const conversationId = conversations.find(
+    ({ botMsg }) => botMsg?.conversation_id,
+  )?.botMsg?.conversation_id || "";
+  const history_messages = conversations.reduce(
+    (acc, { userMsg, botMsg }) => [...acc, [userMsg, botMsg?.answer || ""]],
+    [] as string[][],
+  );
+
   const askQuestion = (userMsg: string) => {
     const conversation: Conversation = {
       userMsg,
     };
     setConversations([...conversations, conversation]);
 
-    Ask(aid, apiKey!, collectionName!, docName!, userMsg, [], "").then((botMsg) => {
+    Ask(aid, apiKey!, collectionName!, docName!, userMsg, history_messages, conversationId).then((botMsg) => {
       setConversations((prevConversations) => {
         const index = prevConversations.findIndex((conv) => conv.userMsg === userMsg);
         if (index !== -1) {
