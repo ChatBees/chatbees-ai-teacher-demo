@@ -4,6 +4,7 @@ import { BotAnswer } from "@/libs/chatbees";
 export interface Conversation {
   userMsg: string;
   botMsg?: BotAnswer;
+  error?: unknown;
 }
 
 interface ChatAreaProps {
@@ -33,7 +34,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversations }) => {
     </svg>
     Bees are thinking...</span>;
 
-  const conversationMapper = ({ userMsg, botMsg }: Conversation, index: number) => (
+  const conversationMapper = ({ userMsg, botMsg, error }: Conversation, index: number) => (
     <Fragment key={index}>
       <div
         ref={index === conversations.length - 1 ? lastUserMsgRef : null}
@@ -44,11 +45,20 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversations }) => {
         ref={index === conversations.length - 1 ? lastBotMsgRef : null}
         className="self-start bg-gray-200 rounded-r-lg rounded-tl-lg p-1.5 m-1 border-2 border-transparent max-w-[85%]">
         {
-          botMsg
-            ? botMsg.answer.split("\n").map(
-              (line, i) => <div key={i}>{line}</div>
-            )
-            : thinkingBees
+          error
+            ? <span className="text-red-500 italic">
+              Something went wrong:
+              {
+                // @ts-expect-error: type of `error` is unknown
+                error?.message
+              }
+            </span>
+            :
+            (botMsg
+              ? botMsg.answer.split("\n").map(
+                (line, i) => <div key={i}>{line}</div>,
+              )
+              : thinkingBees)
         }
       </div>
     </Fragment>

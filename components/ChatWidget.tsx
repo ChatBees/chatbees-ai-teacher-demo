@@ -28,17 +28,21 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ aid, apiKey, collectionName, do
     };
     setConversations([...conversations, conversation]);
 
-    Ask(aid, apiKey!, collectionName!, docName!, userMsg, history_messages, conversationId).then((botMsg) => {
+    const updateConversations = (newConversation: Conversation) => {
       setConversations((prevConversations) => {
         const index = prevConversations.findIndex((conv) => conv === conversation);
         if (index !== -1) {
           const newConversations = [...prevConversations];
-          newConversations.splice(index, 1, { userMsg, botMsg });
+          newConversations.splice(index, 1, newConversation);
           return newConversations;
         }
         return prevConversations;
       });
-    });
+    };
+
+    Ask(aid, apiKey!, collectionName!, docName!, userMsg, history_messages, conversationId)
+      .then((botMsg) => updateConversations({ userMsg, botMsg }))
+      .catch((error) => updateConversations({ userMsg, error }));
   };
 
   const clearConversations = () => {
