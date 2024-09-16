@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { getAccountID, GetOutlineFAQ, OutlineFAQResponse, API_KEY, SummarizeDoc, COLLECTION_NAME } from "../libs/chatbees";
 import ChatWidget from "@/components/ChatWidget";
 
@@ -131,8 +132,14 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 p-4 shadow-md">
-        <h1 className="text-2xl font-bold">ChatBees AI Teacher</h1>
+      <header className="bg-white dark:bg-gray-800 p-4 shadow-md flex items-center">
+        <Image
+          src="/images/logo.svg"
+          alt="logo"
+          width={50}
+          height={20}
+        />
+        <h1 className="text-2xl font-bold ml-1">ChatBees AI Teacher</h1>
       </header>
 
       <main className="flex-grow flex flex-col lg:flex-row p-4 gap-4">
