@@ -132,7 +132,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 p-4 shadow-md">
-        <h1 className="text-2xl font-bold">ChatBees Video</h1>
+        <h1 className="text-2xl font-bold">ChatBees AI Teacher</h1>
       </header>
 
       <main className="flex-grow flex flex-col lg:flex-row p-4 gap-4">
