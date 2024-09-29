@@ -279,7 +279,7 @@ export default function Home() {
       </main>
 
       <footer className="bg-white dark:bg-gray-800 p-4 text-center">
-        <p>Account ID: {accountId}</p>
+        <p>Contact <strong>build@chatbees.ai</strong> to get early access!</p>
       </footer>
     </div>
   );
