@@ -161,10 +161,10 @@ export default function Home() {
             {isLoadingSummary ? (
               <div className="flex items-center space-x-2">
                 <Spinner />
-                <p className="text-sm text-gray-600 dark:text-gray-400">Loading description...</p>
+                <p className="text-base text-gray-600 dark:text-gray-400">Loading description...</p>
               </div>
             ) : (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
                 {description || "No description available for this video."}
               </p>
             )}
@@ -175,10 +175,10 @@ export default function Home() {
             {isLoadingOutline ? (
               <div className="flex items-center space-x-2">
                 <Spinner />
-                <p className="text-sm text-gray-600 dark:text-gray-400">Loading outline...</p>
+                <p className="text-base text-gray-600 dark:text-gray-400">Loading outline...</p>
               </div>
             ) : (
-              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+              <p className="text-base text-gray-600 dark:text-gray-400 whitespace-pre-line">
                 {summary || "No summary available for this video."}
               </p>
             )}
@@ -260,14 +260,14 @@ export default function Home() {
                 {isLoadingFAQ ? (
                   <div className="flex items-center space-x-2">
                     <Spinner />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Loading FAQs...</p>
+                    <p className="text-base text-gray-600 dark:text-gray-400">Loading FAQs...</p>
                   </div>
                 ) : (
                   <ul className="space-y-4">
                     {faqs.map((faq, index) => (
                       <li key={index}>
                         <h4 className="font-medium">{faq.question}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{faq.answer}</p>
+                        <p className="text-base text-gray-600 dark:text-gray-400">{faq.answer}</p>
                       </li>
                     ))}
                   </ul>
